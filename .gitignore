@@ -1,3 +1,6 @@
+client/src/main/ui/node_modules/
+client/src/main/ui/package-lock.json
+
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
