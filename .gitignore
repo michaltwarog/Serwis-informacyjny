@@ -1,0 +1,3 @@
+# Ignore node_modules folder and package-lock.json in client/src/main/ui
+client/src/main/ui/node_modules/
+client/src/main/ui/package-lock.json
