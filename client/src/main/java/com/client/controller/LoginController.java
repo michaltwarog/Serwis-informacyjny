@@ -53,12 +53,22 @@ public class LoginController {
 
     @GetMapping("/login")
     public ResponseEntity<String> showLogoutMessage(@RequestParam(name = "logout", required = false) String logout) {
+        if (logout != null) {
+            return ResponseEntity.ok("You have been successfully logged out.");
+        }
         return ResponseEntity.ok("Login page.");
     }
 
     @PostMapping("/login/v2")
     public ResponseEntity<String> login(@RequestBody LoginDto loginDto, HttpServletRequest request, HttpServletResponse response) {
+        try {
             return loginService.setUserSession(request, response, null, loginDto);
+        } catch (AuthenticationException e) {
+            if (e.getCause() instanceof ExternalAuthenticationException a)
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("You cannot log in this way. You must log in via " + a.getMessage());
+            else
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or password!");
+        }
     }
 
     @GetMapping("/login/google")
@@ -75,6 +85,31 @@ public class LoginController {
 
     @GetMapping("/login/oauth2/code/google")
     public ResponseEntity<String> getAuthorizationGoogle(@RequestParam("code") String code, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws JSONException {
+        RestTemplate restTemplate = new RestTemplate();
+        String responseBody = googleAuthService.getTokenResponseBody(restTemplate, code, clientId, redirectUri, clientSecret);
+        if (responseBody == null) {
+            return ResponseEntity.badRequest().body("Unsuccessful authentication via google account.");
+        }
+
+        String accessToken = googleAuthService.getAccessToken(responseBody);
+        ResponseEntity<String> accessResponse = googleAuthService.getUserInfoResponse(restTemplate, accessToken);
+
+        JSONObject jsonObject = new JSONObject(accessResponse.getBody());
+        String email = jsonObject.getString("email");
+        UserRegistrationDto userRegistrationDto = UserRegistrationDto.jsonToDto(jsonObject);
+        if (!loginService.checkIfUserExistsByEmail(email)) {
+            try {
+                registerService.registerUser(userRegistrationDto);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in google authorization (login)");
+            }
+            ResponseEntity<String> editorialResponse = registerService.registerUserClientToEditorial(userRegistrationDto, httpServletRequest);
+            if (!editorialResponse.getStatusCode().is2xxSuccessful())
+                return new ResponseEntity<>(editorialResponse.getBody(), editorialResponse.getStatusCode());
+        }
+
+        loginService.setUserSession(httpServletRequest, httpServletResponse, userRegistrationDto, null);
+
         return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(URI.create(WEBSITE_URL)).build();
     }
 }

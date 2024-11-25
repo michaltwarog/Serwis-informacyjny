@@ -24,11 +24,19 @@ public class LoginController {
 
     @GetMapping("/login")
     public ResponseEntity<String> showLogoutMessage(@RequestParam(name = "logout", required = false) String logout) {
+        if (logout != null) {
+            return ResponseEntity.ok("You have been successfully logged out.");
+        }
         return ResponseEntity.ok("Login page.");
     }
 
     @PostMapping("/login/v2")
     public ResponseEntity<String> login(@RequestBody LoginDto loginDto, HttpServletRequest request, HttpServletResponse response) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or password!");
+        try {
+            loginService.setUserSession(request, response, loginDto);
+            return ResponseEntity.ok("Login successful.");
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect username or password!");
+        }
     }
 }

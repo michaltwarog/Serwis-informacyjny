@@ -30,17 +30,44 @@ public class ArticleProposalController {
 
     @PostMapping
     public ResponseEntity<String> addArticle(@RequestBody @Valid ArticleProposalDto articleProposalDto) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            User loggedUser = userChecker.get();
+            return articleProposalService.addArticle(loggedUser, articleProposalDto);
+        } else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
     }
 
     @PutMapping
     public ResponseEntity<String> updateArticle(@RequestBody @Valid ArticleProposalDto articleProposalDto) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+        if (articleProposalDto == null || articleProposalDto.getId() == null
+                || articleProposalDto.getAcceptance() == null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Provide a body, including id and status!");
+
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            User loggedUser = userChecker.get();
+            return articleProposalService.updateArticle(articleProposalDto, loggedUser);
+        } else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
     }
 
     @GetMapping
     public ResponseEntity<List<ArticleProposalDto>> getArticles(Pageable pageable, @RequestParam(value = "title", required = false) String title,
                                                                 @RequestParam(value = "acceptance", required = false) ArticleProposal.Acceptance acceptance) {
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            User loggedUser = userChecker.get();
+            try {
+                return articleProposalService.getProposals(pageable, loggedUser, title, acceptance);
+            } catch (RuntimeException runtimeException) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(List.of());
     }
 }
