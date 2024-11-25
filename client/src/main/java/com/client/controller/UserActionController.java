@@ -55,11 +55,29 @@ public class UserActionController {
 
     @GetMapping("/user/info")
     public ResponseEntity<UserDto> getUserInfo(){
-        return ResponseEntity.status(HttpStatus.OK).body(UserDto.builder().build());
+        Optional<User> userChecker = userActionService.getLoggedUser();
+        if (userChecker.isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        UserDto userDto = userActionService.getUserInfo(userChecker.get());
+        return ResponseEntity.status(HttpStatus.OK).body(userDto);
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<Object> deleteUser(@RequestParam(name = "id") Long userId, HttpServletRequest request) {
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+
+        User loggedUser = userChecker.get();
+        if (loggedUser.getAuthority().getAuthorityName().equals("ADMIN") || loggedUser.getId().equals(userId)) {
+            userActionService.deleteUserById(userId);
+            ResponseEntity<String> editorialResponse = userActionService.deleteUserClientToEditorial(userId, request);
+            if (!editorialResponse.getStatusCode().is2xxSuccessful())
+                return new ResponseEntity<>(editorialResponse.getStatusCode());
+        } else
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
@@ -79,7 +97,29 @@ public class UserActionController {
 
     @PutMapping("/edit")
     public ResponseEntity<String> editUser(@RequestParam(name = "id") Long userId, @Valid @RequestBody UserEditDto userEditDto, HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Insufficient privileges - you are neither admin nor account owner!");
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isEmpty())
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+
+        User loggedUser = userChecker.get();
+
+        if (!loggedUser.getAuthority().getAuthorityName().equals("ADMIN")
+                && (userEditDto.getPasswordToConfirm() == null || !passwordEncoder.matches(userEditDto.getPasswordToConfirm(), loggedUser.getPassword())) && !loggedUser.getUserDetails().getSupplier().equals("GOOGLE"))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Insufficient privileges - you are neither admin nor provided the right password!");
+
+        if (loggedUser.getAuthority().getAuthorityName().equals("ADMIN") || loggedUser.getId().equals(userId)) {
+            User userToEdit = userActionService.findUserById(userId);
+            if (!userToEdit.getUsername().equals(userEditDto.getUsername())
+                    && userActionService.findUserByUsername(userEditDto.getUsername()) != null)
+                return ResponseEntity.badRequest().body("Username already exists in db!");
+            userActionService.updateUser(userToEdit, userEditDto, loggedUser.getId());
+            ResponseEntity<String> editorialResponse = userActionService.updateUserClientToEditorial(userId, loggedUser.getId(), userEditDto, request);
+            if (!editorialResponse.getStatusCode().is2xxSuccessful())
+                return ResponseEntity.badRequest().body("Bad request from client side - editorial");
+            return ResponseEntity.ok("Successfully edited user");
+        } else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Insufficient privileges - you are neither admin nor account owner!");
     }
 
     @PutMapping("/edit/fe")

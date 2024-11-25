@@ -30,27 +30,55 @@ public class ArticleController {
 
     @GetMapping
     public ResponseEntity<List<ArticleDto>> getAllArticles(@RequestParam(name = "category", required = false) String category) {
+        List<ArticleDto> articles;
 
-        return ResponseEntity.ok(List.of());
+        if (category == null) articles = articleService.findAll();
+        else articles = articleService.findByCategory(category);
+
+        if (articles.isEmpty())
+            return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(articles);
     }
 
     @GetMapping("/pages")
     public ResponseEntity<List<ArticleDto>> getAllArticlesPaged(@RequestParam(name = "page", required = false) Integer page,
                                                                 @RequestParam(name = "size", required = false) Integer size,
                                                                 @RequestParam(name = "category", required = false) String category) {
+        List<ArticleDto> articles;
 
-        return ResponseEntity.ok(List.of());
+        try {
+            if (category == null)
+                articles = articleService.findAllPaged(page, size);
+            else
+                articles = articleService.findByCategoryPaged(page, size, category);
+        } catch (RuntimeException runtimeException) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        if (articles.isEmpty())
+            return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(articles);
     }
 
     @PostMapping("/fe")
     public ResponseEntity<String> addArticleFromEditorial(@Valid @RequestBody ArticleCorrectToClientDto articleCorrectToClientDto, @RequestHeader("X-Caller") String caller) {
-
-        return ResponseEntity.ok("Successful moved");
+        if (!"ARTICLE_FROM_EDITORIAL".equals(caller))
+            return ResponseEntity.badRequest().body("Unsuccessful transfer process in client microservice.");
+        else {
+            articleService.saveArticle(articleCorrectToClientDto);
+            return ResponseEntity.ok("Successful moved");
+        }
     }
 
     @DeleteMapping("/withdraw")
     public ResponseEntity<String> deleteAndMoveArticleToEditorialService(@RequestParam(name = "id") Long articleId, HttpServletRequest request) {
+        Optional<User> userChecker = userActionService.getLoggedUser();
 
+        if (userChecker.isPresent()) {
+            return articleService.deleteAndMoveArticleToEditorialService(articleId, request);
+        } else
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
     }
 }

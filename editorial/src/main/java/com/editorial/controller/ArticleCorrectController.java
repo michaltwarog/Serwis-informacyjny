@@ -32,26 +32,59 @@ public class ArticleCorrectController {
     @GetMapping
     public ResponseEntity<List<ArticleCorrectDto>> getArticles(Pageable pageable, @RequestParam(value = "title", required = false) String title,
                                                                @RequestParam(value = "isCorrected", required = false) Boolean isCorrected) {
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            try {
+                return articleCorrectService.getCorrects(pageable, title, isCorrected);
+            } catch (RuntimeException runtimeException) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(List.of());
     }
 
     @PutMapping
     public ResponseEntity<String> updateArticle(@RequestBody @Valid ArticleCorrectDto articleCorrectDto) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+        if (articleCorrectDto == null || articleCorrectDto.getId() == null)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Provide a body, including id!");
+
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            User loggedUser = userChecker.get();
+            return articleCorrectService.updateArticle(articleCorrectDto, loggedUser);
+        } else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
     }
 
     @DeleteMapping("/reject")
     public ResponseEntity<String> deleteAndMoveArticleToArticleDraft(@RequestParam(name = "id") Long correctId) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            return articleCorrectService.deleteAndMoveArticleToArticleDraft(correctId);
+        } else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
     }
 
     @DeleteMapping("/accept")
     public ResponseEntity<String> deleteAndMoveArticleToClientService(@RequestParam(name = "id") Long correctId, @RequestParam(name = "category") String category, HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
+        Optional<User> userChecker = userActionService.getLoggedUser();
+
+        if (userChecker.isPresent()) {
+            return articleCorrectService.deleteAndMoveArticleToClientService(correctId, request, category);
+        } else
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username of requesting user does not exist in db!");
     }
 
     @PostMapping("/fc")
     public ResponseEntity<String> addArticleCorrectFromClient(@Valid @RequestBody ArticleCorrectToClientDto articleCorrectToClientDto, @RequestHeader("X-Caller") String caller) {
+        if (!"ARTICLE_FROM_CLIENT".equals(caller))
+            return ResponseEntity.badRequest().body("Unsuccessful transfer process in editorial microservice.");
+        else {
+            articleCorrectService.saveArticleCorrect(articleCorrectToClientDto);
             return ResponseEntity.ok("Successful moved");
+        }
     }
 }
