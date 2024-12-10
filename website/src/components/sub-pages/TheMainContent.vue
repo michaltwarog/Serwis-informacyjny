@@ -1,11 +1,36 @@
 <script setup>
 import TheRightSection from "@/components/api-weather/TheRightSection.vue";
 import ArticleSection from "@/components/articles/ArticleSection.vue";
+import {Toaster, toast } from 'vue-sonner'
+import { onMounted } from "vue";
+import jsCookie from "js-cookie";
+
+
+onMounted (() => {
+
+  // toasting info about login and logout
+  if (!sessionStorage.getItem("loginMonitShown"))
+    sessionStorage.setItem("loginMonitShown", "false");
+
+  if (sessionStorage.getItem("loginMonitShown") == "false" && jsCookie.get("ROLE")){
+    toast.success("Zalogowano pomyślnie");
+    sessionStorage.setItem("loginMonitShown", "true");
+    sessionStorage.setItem("logoutMonitShown", "false");
+  }
+
+  if (sessionStorage.getItem("logoutMonitShown") == "false" && !jsCookie.get("ROLE")){
+    toast.success("Wylogowano pomyślnie");
+    sessionStorage.setItem("logoutMonitShown", "true");
+    sessionStorage.setItem("loginMonitShown", "false");
+  }
+
+})
+
 
 </script>
 
 <template>
-
+  <Toaster richColors position="top-center"/>
   <div id="content_container">
     <div class="section_content">
 
@@ -14,12 +39,6 @@ import ArticleSection from "@/components/articles/ArticleSection.vue";
         <ArticleSection/>
     </div>
 
-    <div class="section_content">
-
-      <p class = "section_title">EDUKACJA</p>
-      <hr>
-        <ArticleSection/>
-    </div>
   </div>
 
   <section>
@@ -33,10 +52,13 @@ import ArticleSection from "@/components/articles/ArticleSection.vue";
 #content_container {
   width: 80%;
   float: left;
-  /* margin-top: 7.5rem; */
 }
 .section_content {
   float: left;
+}
+
+section {
+  box-shadow: 2px 2px 20px -10px;
 }
 
 @media (max-width: 640px){

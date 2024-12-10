@@ -45,7 +45,7 @@ export default {
       }
     },
   setup(props){
-    console.log('props.duration:', props.duration);
+    // console.log('props.duration:', props.duration);
     const cards = ref(props.cards);
     const prevCards = ref(props.prevCards);
     const scrollContainer1 = ref("scrollContainer1");
@@ -88,6 +88,8 @@ export default {
   /*background: linear-gradient(white, aliceblue, white);*/
   border-radius: 10px;
   background: white;
+  box-shadow: 2px 2px 20px -10px;
+  margin-right: 2%;
 }
 .react-horizontal-scrolling-menu--scroll-container1 {
   box-sizing: content-box;

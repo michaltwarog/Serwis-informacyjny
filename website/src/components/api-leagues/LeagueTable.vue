@@ -3,11 +3,11 @@
       <div class="button-container">
       <button class="back-button" > <router-link :to="{ name:'leagueTop5',path: '/sport'}">&#x2039;</router-link></button>
       <div class="button-group">
-        <button class="button" @click="handleClick(4328)">Premier League</button>
-        <button class="button" @click="handleClick(4335)">LaLiga</button>
-        <button class="button" @click="handleClick(4332)">Serie A</button>
-        <button class="button" @click="handleClick(4334)">Ligue 1</button>
-        <button class="button" @click="handleClick(4422)">Ekstraklasa</button>
+        <button class="button" @click="handleClick(PremierLeagueId)">Premier League</button>
+        <button class="button" @click="handleClick(LaLigaId)">LaLiga</button>
+        <button class="button" @click="handleClick(SerieAId)">Serie A</button>
+        <button class="button" @click="handleClick(League1Id)">Ligue 1</button>
+        <button class="button" @click="handleClick(EkstraklasaId)">Ekstraklasa</button>
       </div>
     </div>
       <div v-if="clubs && clubs.length">
@@ -32,7 +32,7 @@
             <tbody>
               <tr v-for="(club, index) in clubs" :key="index">
                 <td>{{ club.intRank }}</td>
-                <td><img :src="club.strBadge" alt="Team Logo" /></td>
+                <td><img :src="club.strTeamBadge" alt="Team Logo" class="herb"/></td>
                 <td>{{ club.strTeam }}</td>
                 <td>
                   <div class="form">
@@ -58,7 +58,7 @@
   
   <script>
 import { ref,onMounted} from "vue";
-import {fetchLeagueTable,fetchAllLeagues} from "@/components/api-leagues/GetLeagues.vue";
+import {fetchLeagueTable,fetchAllLeagues} from "@/scripts/Scripts.ts";
 import { useRouter} from 'vue-router'
 import Footer from "@/components/main-layout/Footer.vue";
 
@@ -66,21 +66,23 @@ export default {
   components: {Footer},
 
   setup() {
+    const PremierLeagueId = 4328;
+    const LaLigaId = 4335;
+    const SerieAId = 4332;
+    const Ligue1Id = 4334;
+    const EkstraklasaId = 4422;
+
     const router = useRouter();
     var league=localStorage.getItem("league");
     const clubs = ref([]);
-
+    
     if(!league)
       fetchAllLeagues();
-    const selectedLeague = ref(league || "4422");
+    const selectedLeague = ref(league || EkstraklasaId.toString);
     onMounted(() => {
       fetchAllLeagues();
     });
-    // to pass RefImpl instead of Proxy(array) (inside of template section) which takes no effect when updating
-    // function getClubs() {
-    //   return clubs;
-    // }
-
+   
     function handleClick(id) {
       // Perform some action before navigating to the route
       fetchLeagueTable(id,clubs);
@@ -96,7 +98,12 @@ export default {
       clubs,
       selectedLeague,
       handleClick,
-      fetchLeagueTable
+      fetchLeagueTable,
+      PremierLeagueId,
+      LaLigaId,
+      SerieAId,
+      Ligue1Id,
+      EkstraklasaId,
     };
   }
 };
@@ -108,12 +115,19 @@ export default {
   border-radius: 10px;
   padding: 1%;
   font-size: 0.6rem;
+  box-shadow: 2px 2px 20px -10px;
+  margin-right: 2%;
 }
 .button-container {
   display: flex;
   justify-content: flex-start;
   align-items: center;
 }
+
+.herb {
+  filter: drop-shadow(1px 1px 1px #222);
+}
+
 .scoresTable {
     border-collapse: collapse;
     width: 100%;
