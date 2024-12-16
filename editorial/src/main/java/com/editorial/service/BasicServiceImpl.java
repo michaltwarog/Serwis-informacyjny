@@ -45,7 +45,7 @@ public class BasicServiceImpl {
     }
 
     public HttpHeaders copyHeadersFromRequest(HttpServletRequest request) {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = new org.springframework.http.HttpHeaders();
 
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
