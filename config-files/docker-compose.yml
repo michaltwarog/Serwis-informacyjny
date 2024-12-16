@@ -10,12 +10,12 @@ services:
       MYSQL_DATABASE: userdb
       MYSQL_USER: adminuser
       MYSQL_PASSWORD: admin
-    volumes: 
-     - ../SQL/mysql/data/client:/var/lib/mysql
-     - ../SQL/client:/docker-entrypoint-initdb.d
+    volumes:
+      - ../SQL/mysql/data/client:/var/lib/mysql
+      - ../SQL/client:/docker-entrypoint-initdb.d
     networks:
       - backend
-      
+
   mysql-editorial:
     image: mysql:8.0.32
     ports:
@@ -25,11 +25,11 @@ services:
       MYSQL_DATABASE: editorialdb
       MYSQL_USER: adminuser
       MYSQL_PASSWORD: admin
-    volumes: 
+    volumes:
       - ../SQL/mysql/data/editorial:/var/lib/mysql
       - ../SQL/editorial:/docker-entrypoint-initdb.d
     networks:
-      - backend  
+      - backend
   redis-server:
     image: redis:7.0.9
     #ports:
@@ -38,7 +38,7 @@ services:
     command: ["redis-server"]
     networks:
       - backend
-        
+
   eureka-container:
     build: ../eureka
     ports:
@@ -46,7 +46,7 @@ services:
     depends_on:
       - redis-server
     networks:
-      - backend   
+      - backend
   gateway:
     build: ../gateway
     ports:
@@ -54,16 +54,16 @@ services:
     depends_on:
       - eureka-container
       - redis-server
-    #environment:
+      #environment:
       #EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-container:8761/eureka/
       #EUREKA_URL: http://eureka-container:8761/eureka/
     networks:
-      - backend 
-      
+      - backend
+
   client:
     build: ../client
-    #ports:
-      #- "8086:8086"
+      #ports:
+    #- "8086:8086"
     depends_on:
       - mysql-client
       - redis-server
@@ -81,11 +81,11 @@ services:
     restart: always
     networks:
       - backend
-      
+
   editorial:
     build: ../editorial
-    #ports:
-      #- "8085:8085"    
+      #ports:
+    #- "8085:8085"
     depends_on:
       - mysql-editorial
       - redis-server
@@ -102,6 +102,6 @@ services:
       #MYSQL_DB_NAME: mysql-editorial
     restart: always
     networks:
-      - backend 
+      - backend
 networks:
   backend:
