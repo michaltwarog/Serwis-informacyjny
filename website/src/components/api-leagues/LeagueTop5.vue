@@ -25,7 +25,7 @@
           <tbody>
             <tr v-for="(club, index) in clubs.slice(0,5)" :key="index">
               <td>{{ club.intRank }}</td>
-              <td><img class="team-badge" :src="club.strTeamBadge" alt="Team Logo" /></td>
+              <td><img class="team-badge" :src="club.strBadge" alt="Team Logo" /></td>
               <td>{{ club.strTeam }}</td>
               <td><div class="points">{{ club.intPoints }}</div></td>
             </tr>

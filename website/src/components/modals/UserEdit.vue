@@ -61,6 +61,7 @@
     JOURNALIST: 'Dziennikarz',
     USER: 'Użytkownik',
     REDACTOR: 'Redaktor',
+    CORRECTOR: 'Korektor',
   };
   </script>
   

@@ -77,6 +77,7 @@ const authorityNameMap = {
   JOURNALIST: 'Dziennikarz',
   USER: 'Użytkownik',
   REDACTOR: 'Redaktor',
+  CORRECTOR: 'Korektor',
 };
 
 const optionNameMap = {

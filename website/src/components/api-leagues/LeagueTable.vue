@@ -32,7 +32,7 @@
             <tbody>
               <tr v-for="(club, index) in clubs" :key="index">
                 <td>{{ club.intRank }}</td>
-                <td><img :src="club.strTeamBadge" alt="Team Logo" class="herb"/></td>
+                <td><img :src="club.strBadge" alt="Team Logo" class="herb"/></td>
                 <td>{{ club.strTeam }}</td>
                 <td>
                   <div class="form">

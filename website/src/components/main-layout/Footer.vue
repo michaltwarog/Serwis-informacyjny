@@ -7,7 +7,7 @@ export default {
 
 <template>
   <div class="ftr">
-    <p>Autorzy: Szymon Nowak, Rafał Matusiak, Michał Twaróg, Damian Mizera</p>
+    <p>Autorzy: Szymon Nowak, Rafał Matusiak, Michał Twaróg oraz Damian Mizera</p>
   </div>
 
 </template>

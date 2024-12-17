@@ -63,7 +63,7 @@ interface Scores{
     intRank:number;
     idTeam:number;
     strTeam:string;
-    strTeamBadge:string;
+    strBadge:string;
     idLeague:number;
     strLeague:string;
     strSeason:string;
